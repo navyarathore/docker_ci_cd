@@ -1,8 +1,0 @@
-services:
-  web:
-    image: ${IMAGE}:${TAG}
-    ports:
-      - "${PORT:-8080}:3000"
-    environment:
-      - PORT=3000
-    restart: unless-stopped

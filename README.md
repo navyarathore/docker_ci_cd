@@ -1,51 +1,54 @@
 # Minimal Docker CI/CD Demo
 
-Tiny Node.js Express app with one health endpoint and a lean CI/CD:
-- Test with Jest
-- Build & push image to GHCR
-- Deploy using a single `docker-compose.yml`
+Node.js Express app with Docker CI/CD pipeline that builds and pushes to Docker Hub.
 
-## Local Usage
+## Quick Start
+
 ```bash
-# Install & test
+# Local development
 cd app
 npm install
 npm test
-
-# Run locally without Docker
 npm start
 
-# Or with Docker (build then run)
+# Docker
 docker build -t docker-ci-cd-demo .
 docker run -p 8080:3000 docker-ci-cd-demo
-```
-Visit: http://localhost:8080
 
-## Compose (optional)
-If you've built or pushed an image, you can run it via compose:
-```bash
-# using a locally built image
-IMAGE=docker-ci-cd-demo TAG=latest docker compose up -d
-
-# or using GHCR image (replace owner/repo and tag)
-IMAGE=ghcr.io/<owner>/<repo> TAG=<sha-or-latest> docker compose up -d
+# Docker Compose
+IMAGE=docker-ci-cd-demo TAG=dev docker-compose up -d
 ```
 
-## CI/CD Summary
-On push / PR: tests run.
-On push: image built & pushed `ghcr.io/<owner>/<repo>:<sha>` (and `:latest` on main). Deploy job pulls and runs `docker compose up -d` on self-hosted runner.
+## CI/CD Pipeline
 
-## Setup
-1. Enable Actions write permissions (Repo Settings → Actions).
-2. Self-hosted runner: Docker + access to GHCR.
-3. No extra secrets needed (uses `GITHUB_TOKEN`).
+GitHub Actions workflow (`.github/workflows/ci-cd.yml`) runs on push to `main`:
+
+1. **Build & Push**
+   - Builds Docker image
+   - Logs into Docker Hub
+   - Tags image with `sha-<commit>` and `latest`
+   - Pushes to Docker Hub
+
+2. **Container Testing**
+   - Runs the container
+   - Tests both endpoints with curl
+   - Validates `/healthz` returns correct JSON
+   - Cleans up test container
+
+**Setup**: Add these secrets in GitHub repository settings (Settings → Secrets and variables → Actions):
+- `DOCKERHUB_USERNAME` - Your Docker Hub username
+- `DOCKERHUB_TOKEN` - Docker Hub access token
+
+**Note**: Pull requests trigger the workflow but don't run any jobs.
 
 ## Endpoints
-- `/` greeting
-- `/healthz` returns `{"status":"ok"}`
 
-## Simplification Notes
-- Single compose file used for both local + deploy.
-- Dockerfile is one stage; only prod deps installed.
-- Remove Express/Jest if you want even smaller (replace with native `http` and manual test).
+- `GET /` - Returns greeting
+- `GET /healthz` - Returns `{"status":"ok"}`
+
+## Stack
+
+- Node.js 20 Alpine
+- Express.js
+- GitHub Actions → Docker Hub
 

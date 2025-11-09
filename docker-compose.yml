@@ -2,5 +2,5 @@ services:
   web:
     image: ${IMAGE:-docker-ci-cd-demo}:${TAG:-dev}
     ports:
-      - "${PORT:-8080}:3000"
+      - "${PORT:-5000}:3000"
     restart: unless-stopped

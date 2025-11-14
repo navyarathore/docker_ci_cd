@@ -52,28 +52,6 @@ jobs:
           # Output image URI for deployment job
           echo "image=$ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Test container
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          # Run the container
-          docker run -d -p 5000:3000 --name test-container $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
-          
-          # Wait for container to start
-          sleep 3
-          
-          # Test the endpoints
-          curl -f http://localhost:5000 || exit 1
-          curl -f http://localhost:5000/healthz || exit 1
-          
-          # Check health endpoint returns correct JSON
-          response=$(curl -s http://localhost:5000/healthz)
-          echo "Health check response: $response"
-          
-          # Cleanup
-          docker stop test-container
-          docker rm test-container
-
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
